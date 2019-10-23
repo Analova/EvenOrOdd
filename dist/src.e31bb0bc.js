@@ -24734,7 +24734,48 @@ var DECK = {
   FETCH_ERROR: "FETCH_ERROR"
 };
 exports.DECK = DECK;
-},{}],"reducers/fetchStates.js":[function(require,module,exports) {
+},{}],"reducers/settings.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _types = require("../actions/types");
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var DEFAULT_SETTINGS = {
+  gameStarted: false,
+  instructionsExpended: false
+};
+
+var settingsReducer = function settingsReducer() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_SETTINGS;
+  var action = arguments.length > 1 ? arguments[1] : undefined;
+
+  switch (action.type) {
+    case _types.SET_GAME_STARTED:
+      return _objectSpread({}, state, {
+        gameStarted: action.gameStarted
+      });
+
+    case _types.SET_INSTRUCTIONS_EXPANDED:
+      return _objectSpread({}, state, {
+        instructionsExpanded: action.instructionsExpanded
+      });
+
+    default:
+      return state;
+  }
+};
+
+var _default = settingsReducer;
+exports.default = _default;
+},{"../actions/types":"actions/types.js"}],"reducers/fetchStates.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24746,7 +24787,7 @@ var _default = {
   error: "error"
 };
 exports.default = _default;
-},{}],"reducers/index.js":[function(require,module,exports) {
+},{}],"reducers/deck.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24764,40 +24805,31 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var DEFAULT_SETTINGS = {
-  gameStarted: false,
-  instructionsExpended: false
+var DEFAULT_DECK = {
+  deck_id: "",
+  remaining: 0,
+  fetchState: "",
+  message: ""
 };
 
-var rootReducer = function rootReducer() {
-  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_SETTINGS;
+var deckReducer = function deckReducer() {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_DECK;
   var action = arguments.length > 1 ? arguments[1] : undefined;
-  console.log("state", state, "action", action);
 
   switch (action.type) {
-    case _types.SET_GAME_STARTED:
-      return _objectSpread({}, state, {
-        gameStarted: action.gameStarted
-      });
-
-    case _types.SET_INSTRUCTIONS_EXPANDED:
-      return _objectSpread({}, state, {
-        instructionsExpanded: action.instructionsExpanded
-      });
-
     case _types.DECK.FETCH_SUCCESS:
       var remaining = action.remaining,
           deck_id = action.deck_id;
       return _objectSpread({}, state, {
         remaining: remaining,
         deck_id: deck_id,
-        fetchStates: _fetchStates.default.success
+        fetchState: _fetchStates.default.success
       });
 
     case _types.DECK.FETCH_ERROR:
       return _objectSpread({}, state, {
         message: action.message,
-        fetchStates: _fetchStates.default.error
+        fetchState: _fetchStates.default.error
       });
 
     default:
@@ -24805,9 +24837,31 @@ var rootReducer = function rootReducer() {
   }
 };
 
-var _default = rootReducer;
+var _default = deckReducer;
 exports.default = _default;
-},{"../actions/types":"actions/types.js","./fetchStates":"reducers/fetchStates.js"}],"../node_modules/@babel/runtime/helpers/esm/inheritsLoose.js":[function(require,module,exports) {
+},{"../actions/types":"actions/types.js","./fetchStates":"reducers/fetchStates.js"}],"reducers/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _redux = require("redux");
+
+var _settings = _interopRequireDefault(require("./settings"));
+
+var _deck = _interopRequireDefault(require("./deck"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _default = (0, _redux.combineReducers)({
+  settings: _settings.default,
+  deck: _deck.default
+});
+
+exports.default = _default;
+},{"redux":"../node_modules/redux/es/redux.js","./settings":"reducers/settings.js","./deck":"reducers/deck.js"}],"../node_modules/@babel/runtime/helpers/esm/inheritsLoose.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26995,7 +27049,7 @@ var Instructions = function Instructions(props) {
 
 var _default = (0, _reactRedux.connect)(function (state) {
   return {
-    instructionsExpanded: state.instructionsExpanded
+    instructionsExpanded: state.settings.instructionsExpanded
   };
 }, {
   expandInstructions: _settings.expandInstructions,
@@ -27096,9 +27150,10 @@ function (_Component) {
 
 var mapStateToProps = function mapStateToProps(state) {
   console.log("state");
-  var gameStarted = state.gameStarted,
-      fetchStates = state.fetchStates,
-      message = state.message;
+  var gameStarted = state.settings.gameStarted,
+      _state$deck = state.deck,
+      fetchStates = _state$deck.fetchStates,
+      message = _state$deck.message;
   return {
     gameStarted: gameStarted,
     fetchStates: fetchStates,
