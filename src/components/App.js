@@ -1,18 +1,27 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { startGame, cancelGame } from "../actions/settings";
+import { fetchNewDeck } from "../actions/deck";
+import fetchStates from "../reducers/fetchStates";
 import Instructions from "./Instructions";
 
 class App extends Component {
-  // startGame = () => {
-  //   this.props.dispatch(startGame());
-  // };
+  startGame = () => {
+    this.props.startGame();
+    this.props.fetchNewDeck();
+  };
 
-  // cancelGame = () => {
-  //   this.props.dispatch(cancelGame());
-  // };
   render() {
     console.log("this", this);
+
+    if (this.props.fetchStates === fetchStates.error) {
+      return (
+        <div>
+          <p>Please try reloading the app. An error occured!</p>
+          <p>{this.props.message}</p>
+        </div>
+      );
+    }
     return (
       <div>
         <div>Even or ods</div>
@@ -26,7 +35,7 @@ class App extends Component {
           <div>
             <h3>A new game awaits</h3>
             <br />
-            <button onClick={this.props.startGame}>Start Game</button>
+            <button onClick={this.startGame}>Start Game</button>
             <hr />
             <Instructions />
           </div>
@@ -39,19 +48,30 @@ class App extends Component {
 const mapStateToProps = state => {
   console.log("state");
 
-  return { gameStarted: state.gameStarted };
-};
+  const { gameStarted, fetchStates, message } = state;
 
-const mapDispatchToProps = dispatch => {
   return {
-    startGame: () => dispatch(startGame()),
-    cancelGame: () => dispatch(cancelGame())
+    gameStarted,
+    fetchStates,
+    message
   };
 };
 
+// const mapDispatchToProps = dispatch => {
+//   return {
+//     startGame: () => dispatch(startGame()),
+//     cancelGame: () => dispatch(cancelGame()),
+//     fetchNewDeck: () => dispatch(fetchNewDeck())
+//   };
+// };
+
 const componentConnector = connect(
   mapStateToProps,
-  mapDispatchToProps
+  {
+    startGame,
+    cancelGame,
+    fetchNewDeck
+  }
 );
 
 export default componentConnector(App);
